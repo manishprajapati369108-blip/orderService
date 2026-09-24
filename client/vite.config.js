@@ -7,7 +7,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
 
   server: {
-    port: 6000,
+    host: true,
+    port: 3000,
     strictPort: true,
     open: true,
     allowedHosts: ["kabob-plywood-deflector.ngrok-free.dev", ".ngrok-free.dev"],

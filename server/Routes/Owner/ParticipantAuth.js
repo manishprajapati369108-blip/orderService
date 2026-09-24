@@ -1,4 +1,4 @@
-import "./config/dotenv.js"
+import "../../config/dotenv.js"
 import express from "express";
 import jwt from "jsonwebtoken";
 import sendEmail from "../../services/emailService.js";
@@ -8,6 +8,8 @@ import upload from "../../middleware/multer.js"
 import authMiddleware from "../../middleware/authMiddleware.js";
 import bcrypt from "bcrypt"
 import avatarUpload from "../../utils/avatarUpload.js";
+import { Style, Avatar } from "@dicebear/core";
+import definition from "@dicebear/styles/initials.json" with { type: "json" };
 
 //user authentication route
 const router = express.Router()
@@ -17,15 +19,23 @@ router.post("/avatar", upload.single("avatar"), avatarUpload);
 
 router.post("/register", async (req, res) => {
   try {
-    const { avatar, name, email, password } = req.body;
+    let { name, email, password } = req.body;
+    let { avatar } = req.body;
+
+     if (!name?.trim() || !email?.trim() || !password) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ error: "Password must be at least 8 characters" });
+    }
+
+    email = email.toLowerCase().trim();
+    name = name.trim();
+
+  
 
     const existingUser = await Participant.findOne({ email });
-
-    if (!email || !password || !name || !avatar) {
-      return res.status(400).json({
-        error: "All field are required",
-      });
-    }
 
     if (existingUser) {
       return res.status(400).json({
@@ -33,16 +43,26 @@ router.post("/register", async (req, res) => {
       });
     }
 
+      if(!avatar) {
+         const style = new Style(definition);
+    const avatarGen = new Avatar(style, {
+      lettersVariant: ["double"],
+      seed: name,
+      
+    });
+     avatar = avatarGen.toDataUri();
+    }
+
     const user = new Participant({
-      email: email,
+      email,
       password: password,
-      avatar,
+      avatar: avatar,
       name,
     });
 
     await user.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "registered successfull",
     });
   } catch (error) {
@@ -126,7 +146,12 @@ router.get("/me", authMiddleware, async (req, res) => {
      try {
     res.status(200).json({
       success: true,
-      user: req.user,
+      user: {
+        id: req.user._id,
+        email:req.user.email,
+        name: req.user.name,
+        avatar: req.user.avatar,
+      }
     });
   } catch (error) {
     res.status(500).json({
@@ -147,7 +172,7 @@ router.post("/forget-password", async (req, res) => {
     }
 
     // ✅ Find user
-    const user = await ParticiParticipant.findOne({ email });
+    const user = await Participant.findOne({ email });
     console.log("👤 User found:", user ? "Yes" : "No");
 
     if (!user) {
@@ -157,9 +182,11 @@ router.post("/forget-password", async (req, res) => {
     // ✅ Generate 6-digit OTP
     const otp = generateRandom(6, "number");
 
+    const hashedOtp = await bcrypt.hash(otp, 10);
+
     // ✅ Save OTP with 15-minute expiry
-    user.resetOTP = otp;
-    user.resetOTPExpires = new Date(Date.now() + 15 * 60 * 1000);
+    user.resetOtp = hashedOtp;
+    user.resetOtpExpires = new Date(Date.now() + 15 * 60 * 1000);
     await user.save();
     console.log("💾 OTP saved to database");
 
@@ -217,30 +244,44 @@ router.post("/verify-otp", async (req, res) => {
       return res.status(400).json({ error: "Email and OTP are required" });
     }
 
-    const user = await Participant.findOne({
-      email,
-      resetOTP: otp,
-      resetOTPExpires: { $gt: new Date() },
-    });
+    // ✅ Step 1: Find user by email only
+    const user = await Participant.findOne({ email });
 
-    if (!user) {
-      console.log("❌ Invalid or expired OTP");
+    if (!user || !user.resetOtp) {
+      console.log("❌ No OTP request found");
       return res.status(400).json({ error: "Invalid or expired OTP" });
     }
 
-    // Generate temporary token
+    // ✅ Step 2: Check expiry
+    if (!user.resetOtpExpires || user.resetOtpExpires < new Date()) {
+      console.log("❌ OTP expired");
+      return res.status(400).json({ error: "Invalid or expired OTP" });
+    }
+
+    // ✅ Step 3: Compare submitted OTP with stored hash
+    const isValid = await bcrypt.compare(otp, user.resetOtp);
+
+    if (!isValid) {
+      console.log("❌ OTP does not match");
+      return res.status(400).json({ error: "Invalid or expired OTP" });
+    }
+
+    // ✅ Step 4: Generate temporary token for password reset
     const token = generateRandom(32, "alphaNumeric");
     user.resetToken = token;
     user.resetTokenExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+    // ✅ Optional: clear the OTP now that it's used (prevents reuse)
+    user.resetOtp = null;
+    user.resetOtpExpires = null;
+
     await user.save();
     console.log("✅ OTP verified, token generated");
 
     res.json({ tempToken: token });
   } catch (error) {
     console.error("❌ ERROR in verify-otp:", error.message);
-    res
-      .status(500)
-      .json({ error: "Something went wrong", details: error.message });
+    res.status(500).json({ error: "Something went wrong", details: error.message });
   }
 });
 
@@ -271,8 +312,8 @@ router.post("/reset-password", async (req, res) => {
     }
 
     user.password = newPassword;
-    user.resetOTP = null;
-    user.resetOTPExpires = null;
+    user.resetOtp = null;
+    user.resetOtpExpires = null;
     user.resetToken = null;
     user.resetTokenExpires = null;
     await user.save();
@@ -307,9 +348,11 @@ router.post("/resend-otp", async (req, res) => {
     // ✅ Generate new OTP
     const otp = generateRandom(6, "number");
 
+    const hashedOtp = await bcrypt.hash(otp, 10)
+
     // ✅ Save new OTP with 15-minute expiry
-    user.resetOTP = otp;
-    user.resetOTPExpires = new Date(Date.now() + 15 * 60 * 1000);
+    user.resetOtp = hashedOtp;
+    user.resetOtpExpires = new Date(Date.now() + 15 * 60 * 1000);
     await user.save();
     console.log("💾 New OTP saved to database");
 

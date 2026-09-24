@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import User from "../models/User.js";
+import Participant from "../models/Participant.js";
 dotenv.config();
 const authMiddleware = async (req, res, next) => {
   try {
@@ -18,7 +18,7 @@ const authMiddleware = async (req, res, next) => {
     //here decode has only userId we get from jwt in login but we need complete information so we use variable user  which find all information using userId
     const decode = jwt.verify(token, process.env.JWT_SECRET);
 
-    const user = await User.findById(decode.userId).select("-password");
+    const user = await Participant.findById(decode.userId).select("-password");
 
     //here user is the database instance; we assigned with req.user
     req.user = user;

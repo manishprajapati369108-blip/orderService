@@ -12,5 +12,4 @@ function generateUniqueUid() {
   return id;
 }
 
-
 console.log(generateUniqueUid()); // Always unique

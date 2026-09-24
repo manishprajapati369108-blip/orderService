@@ -3,6 +3,8 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
 import cors from "cors";
+import authMiddleware from "./middleware/authMiddleware.js";
+import ParticipantAuth from "./Routes/Owner/ParticipantAuth.js"
 
 const app = express()
 
@@ -10,9 +12,11 @@ app.use(express.json())
 app.use(express.urlencoded({extended:true}));
 app.use(cookieParser());
 app.use(cors({
-    origin: "http://localhost:6000",
+    origin: "http://localhost:3000",
     credentials: true,
 }))
+
+app.use("/auth", ParticipantAuth);
 
 const startServer = async() => {
     try {
@@ -22,6 +26,7 @@ const startServer = async() => {
         })
     } catch (error) {
         console.log(error);
+        process.exit(1);
     }
 }
 

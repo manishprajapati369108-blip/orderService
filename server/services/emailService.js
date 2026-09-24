@@ -1,7 +1,6 @@
+import "../config/dotenv.js"
 import { BrevoClient } from "@getbrevo/brevo";
-import dotenv from "dotenv";
 
-dotenv.config();
 
 const client = new BrevoClient({
     apiKey: process.env.BREVO_API_KEY,
@@ -14,7 +13,7 @@ const sendEmail = async (to, subject, htmlContent) => {
                 subject,
                 htmlContent,
                 sender: {
-                    name: "file Drive",
+                    name: "Order Service",
                     email : process.env.EMAIL_FROM,
                 },
                 to: [{email: to}]

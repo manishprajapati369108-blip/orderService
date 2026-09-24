@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
 const participantSchema = new mongoose.Schema(
   {
@@ -50,7 +51,7 @@ const participantSchema = new mongoose.Schema(
   },
 );
 
-userSchema.pre('save', async function() {
+participantSchema.pre('save', async function() {
   // ✅ 'this' refers to the document being saved
   if (!this.isModified('password')) return ;
   
@@ -63,4 +64,4 @@ userSchema.pre('save', async function() {
   }
 });
 
-export default mongoose.model('User', userSchema);
+export default mongoose.model('Participant', participantSchema);
