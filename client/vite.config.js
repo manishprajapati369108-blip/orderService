@@ -15,7 +15,7 @@ export default defineConfig({
 
     proxy: {
         "/api": {
-          target: "http://localhost:7000",
+          target: 'http://127.0.0.1:7000',
           changeOrigin: true,
           //here \/ here / means ends if we want to tell computer that / this is not end the use \ which say after it is normal string not end \ it says take as special words like function digit routes etc starts
           rewrite: (path) => path.replace(/^\/api/, ""),

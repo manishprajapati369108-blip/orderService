@@ -1,0 +1,6 @@
+{
+  // ... existing settings ...
+  "files.associations": {
+    "*.css": "tailwindcss"
+  }
+}

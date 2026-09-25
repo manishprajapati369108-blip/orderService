@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../utils/axios.js"
+import api from "../../utils/axios.js";
+import { useAuth } from "../context/useContext.jsx";
 
 // ─────────────────────────────────────────────────────────────
 // Main Auth Component
@@ -8,7 +9,7 @@ import api from "../../utils/axios.js"
 export default function AuthComponents() {
   const navigate = useNavigate();
   const [mode, setMode] = useState("login"); // "login" | "register" | "forgot"
-
+  const { setIsLoggedIn } = useAuth();
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 to-slate-200 px-4 py-10">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
@@ -28,7 +29,11 @@ export default function AuthComponents() {
 
         {mode === "login" && (
           <LoginForm
-            onSuccess={() => navigate("/")}
+            onSuccess={() => {
+              setIsLoggedIn(true);
+
+              navigate("/home");
+            }}
             onForgot={() => setMode("forgot")}
             onSwitch={() => setMode("register")}
           />

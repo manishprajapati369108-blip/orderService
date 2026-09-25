@@ -1,42 +1,50 @@
-import { useState } from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../utils/axios.js";
+import api from "../../utils/axios.js";
 import { AuthContext } from "./createContext.jsx";
 
 const AuthProvider = ({ children }) => {
+
   const [avatar, setAvatar] = useState(null);
-  const [currentUser, setCurrentUser] = useState("");
-  const navigate = useNavigate();
+  const [name, setName] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [email, setEmail] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  const navigate = useNavigate()
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const response = await api.get("/auth/me");
-
-        setAvatar(response?.data?.user?.avatar);
-        setCurrentUser(response?.data?.user?._id);
-        const isLogged = response?.data?.user;
-
-        if (!isLogged) {
-          navigate("/login");
-          return;
-        }
+        setAvatar(response.data.user.avatar);
+        setName(response.data.user.name);
+        setEmail(response.data.user.email)
+        setIsLoggedIn(true)
+        
       } catch (error) {
         console.log(error);
-        if (error.response?.status === 401) {
-          navigate("/login");
+        setAvatar(null);
+        setName(null);
+        setIsLoggedIn(false);
+        if(error.response?.status === 401) {
+          navigate("/auth");
         }
+      } finally {
+        setLoading(false);
       }
     };
     fetchProfile();
   }, [navigate]);
 
   const value = {
-    setAvatar,
     avatar,
-    currentUser,
-    setCurrentUser,
-  };
+    isLoggedIn,
+    loading,
+    setIsLoggedIn,
+    name,
+    email
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
