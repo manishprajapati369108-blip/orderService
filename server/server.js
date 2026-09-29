@@ -17,6 +17,7 @@ app.use(cors({
 }))
 
 app.use("/auth", ParticipantAuth);
+app.use
 
 const startServer = async() => {
     try {
