@@ -1,36 +1,57 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { initFlowbite } from "flowbite";
 import { useAuth } from "../context/useContext.jsx";
 import api from "../../utils/axios.js";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const HomePage = () => {
-  const { avatar, name, email } = useAuth();
-  const { setIsLoggedIn } = useAuth();
+  const { avatar, name, email, setIsLoggedIn } = useAuth();
   const navigate = useNavigate();
+  const [groups, setGroups] = useState([]);
+
   useEffect(() => {
     initFlowbite();
   }, []);
 
-  //logout
-
   const handleLogout = async (e) => {
     e.preventDefault();
     try {
-      const response = await api.post("/auth/logout", {});
-      console.log(response);
+      await api.post("/auth/logout", {});
       setIsLoggedIn(false);
-      if (response) {
-        navigate("/auth");
-      }
+      navigate("/auth");
     } catch (error) {
-      console.log("server Error :", error);
+      console.log("Server Error:", error);
       setIsLoggedIn(false);
+      navigate("/auth");
     }
   };
 
+  
+
+  //fetching the restaurant where i am  a member
+ useEffect(() => {
+  const fetchingHotel = async() => {
+    try {
+    const response = await api.get("/fetch/connected-restaurant");
+
+    setGroups(response?.data?.group)
+
+    }
+    catch(error) {
+      console.log(error)
+    }
+
+  }
+
+  fetchingHotel()
+ }, [])
+
+
+
   return (
     <div className="min-h-screen bg-white">
+      {/* ---------- NAV ---------- */}
       <nav className="fixed top-0 z-50 w-full bg-white border-b border-green-200">
         <div className="px-3 py-3 lg:px-5 lg:pl-3">
           <div className="flex items-center justify-between">
@@ -40,7 +61,7 @@ const HomePage = () => {
                 data-drawer-toggle="top-bar-sidebar"
                 aria-controls="top-bar-sidebar"
                 type="button"
-                className="sm:hidden text-green-800 bg-transparent box-border border border-transparent hover:bg-green-100 focus:ring-4 focus:ring-green-200 font-medium leading-5 rounded-base text-sm p-2 focus:outline-none"
+                className="sm:hidden text-green-800 bg-transparent border border-transparent hover:bg-green-100 focus:ring-4 focus:ring-green-200 font-medium leading-5 rounded text-sm p-2 focus:outline-none"
               >
                 <span className="sr-only">Open sidebar</span>
                 <svg
@@ -60,75 +81,60 @@ const HomePage = () => {
                   />
                 </svg>
               </button>
-              <a href="https://flowbite.com" className="flex ms-2 md:me-24">
+
+              <a href="/" className="flex ms-2 md:me-24">
                 <img
                   src="https://flowbite.com/docs/images/logo.svg"
                   className="h-6 me-3"
-                  alt="FlowBite Logo"
+                  alt="Logo"
                 />
                 <span className="self-center text-lg font-semibold whitespace-nowrap text-green-700">
                   Flowbite
                 </span>
               </a>
             </div>
+
             <div className="flex items-center">
               <div className="flex items-center ms-3">
-                <div>
-                  <button
-                    type="button"
-                    className="flex text-sm bg-green-700 rounded-full focus:ring-4 focus:ring-green-300"
-                    aria-expanded="false"
-                    data-dropdown-toggle="dropdown-user"
-                  >
-                    <span className="sr-only">Open user menu</span>
-                    <img
-                      className="w-8 h-8 rounded-full"
-                      src={avatar}
-                      alt="user photo"
-                    />
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  className="flex text-sm bg-green-700 rounded-full focus:ring-4 focus:ring-green-300"
+                  aria-expanded="false"
+                  data-dropdown-toggle="dropdown-user"
+                >
+                  <span className="sr-only">Open user menu</span>
+                  <img
+                    className="w-8 h-8 rounded-full"
+                    src={avatar}
+                    alt="user photo"
+                  />
+                </button>
+
                 <div
-                  className="z-50 hidden bg-white border border-green-200 rounded-base shadow-lg w-44"
+                  className="z-50 hidden bg-white border border-green-200 rounded shadow-lg w-44"
                   id="dropdown-user"
                 >
-                  <div
-                    className="px-4 py-3 border-b border-green-200"
-                    role="none"
-                  >
-                    <p
-                      className="text-sm font-medium text-green-800"
-                      role="none"
-                    >
-                      {name}
-                    </p>
-                    <p className="text-sm text-green-600 truncate" role="none">
-                      {email}
-                    </p>
+                  <div className="px-4 py-3 border-b border-green-200">
+                    <p className="text-sm font-medium text-green-800">{name}</p>
+                    <p className="text-sm text-green-600 truncate">{email}</p>
                   </div>
-                  <ul
-                    className="p-2 text-sm text-green-700 font-medium"
-                    role="none"
-                  >
+                  <ul className="p-2 text-sm text-green-700 font-medium">
                     <li>
                       <a
-                        href="#"
+                        href="/dashboard"
                         className="inline-flex items-center w-full p-2 hover:bg-green-100 hover:text-green-900 rounded"
-                        role="menuitem"
                       >
                         Dashboard
                       </a>
                     </li>
-
                     <li>
-                      <a
-                        href="#"
-                        className="inline-flex items-center w-full p-2 hover:bg-green-100 hover:text-green-900 rounded"
-                        role="menuitem"
+                      <button
+                        type="button"
                         onClick={handleLogout}
+                        className="inline-flex items-center w-full p-2 text-left hover:bg-green-100 hover:text-green-900 rounded"
                       >
                         Sign out
-                      </a>
+                      </button>
                     </li>
                   </ul>
                 </div>
@@ -138,20 +144,18 @@ const HomePage = () => {
         </div>
       </nav>
 
+      {/* ---------- SIDEBAR ---------- */}
       <aside
         id="top-bar-sidebar"
         className="fixed top-0 left-0 z-40 w-64 h-full transition-transform -translate-x-full sm:translate-x-0"
         aria-label="Sidebar"
       >
         <div className="h-full px-3 py-4 overflow-y-auto bg-white border-e border-green-200">
-          <a
-            href="https://flowbite.com/"
-            className="flex items-center ps-2.5 mb-5"
-          >
+          <a href="/" className="flex items-center ps-2.5 mb-5">
             <img
               src="https://flowbite.com/docs/images/logo.svg"
               className="h-6 me-3"
-              alt="Flowbite Logo"
+              alt="Logo"
             />
             <span className="self-center text-lg text-green-700 font-semibold whitespace-nowrap">
               Flowbite
@@ -160,15 +164,11 @@ const HomePage = () => {
           <ul className="space-y-2 font-medium">
             <li>
               <a
-                href="#"
-                className="flex items-center px-2 py-1.5 text-green-700 rounded-base hover:bg-green-100 hover:text-green-900 group"
+                href="/dashboard"
+                className="flex items-center px-2 py-1.5 text-green-700 rounded hover:bg-green-100 hover:text-green-900 group"
               >
                 <svg
-                  className="w-5 h-5 transition duration-75 group-hover:text-green-900"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
+                  className="w-5 h-5 group-hover:text-green-900"
                   fill="none"
                   viewBox="0 0 24 24"
                 >
@@ -192,15 +192,11 @@ const HomePage = () => {
             </li>
             <li>
               <a
-                href="#"
-                className="flex items-center px-2 py-1.5 text-green-700 rounded-base hover:bg-green-100 hover:text-green-900 group"
+                href="/kanban"
+                className="flex items-center px-2 py-1.5 text-green-700 rounded hover:bg-green-100 hover:text-green-900 group"
               >
                 <svg
-                  className="shrink-0 w-5 h-5 transition duration-75 group-hover:text-green-900"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
+                  className="shrink-0 w-5 h-5 group-hover:text-green-900"
                   fill="none"
                   viewBox="0 0 24 24"
                 >
@@ -220,15 +216,11 @@ const HomePage = () => {
             </li>
             <li>
               <a
-                href="#"
-                className="flex items-center px-2 py-1.5 text-green-700 rounded-base hover:bg-green-100 hover:text-green-900 group"
+                href="/inbox"
+                className="flex items-center px-2 py-1.5 text-green-700 rounded hover:bg-green-100 hover:text-green-900 group"
               >
                 <svg
-                  className="shrink-0 w-5 h-5 transition duration-75 group-hover:text-green-900"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
+                  className="shrink-0 w-5 h-5 group-hover:text-green-900"
                   fill="none"
                   viewBox="0 0 24 24"
                 >
@@ -241,22 +233,18 @@ const HomePage = () => {
                   />
                 </svg>
                 <span className="flex-1 ms-3 whitespace-nowrap">Inbox</span>
-                <span className="inline-flex items-center justify-center w-4.5 h-4.5 ms-2 text-xs font-medium text-white bg-green-600 border border-green-700 rounded-full">
+                <span className="inline-flex items-center justify-center w-5 h-5 ms-2 text-xs font-medium text-white bg-green-600 border border-green-700 rounded-full">
                   2
                 </span>
               </a>
             </li>
             <li>
               <a
-                href="#"
-                className="flex items-center px-2 py-1.5 text-green-700 rounded-base hover:bg-green-100 hover:text-green-900 group"
+                href="/users"
+                className="flex items-center px-2 py-1.5 text-green-700 rounded hover:bg-green-100 hover:text-green-900 group"
               >
                 <svg
-                  className="shrink-0 w-5 h-5 transition duration-75 group-hover:text-green-900"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
+                  className="shrink-0 w-5 h-5 group-hover:text-green-900"
                   fill="none"
                   viewBox="0 0 24 24"
                 >
@@ -272,15 +260,11 @@ const HomePage = () => {
             </li>
             <li>
               <a
-                href="#"
-                className="flex items-center px-2 py-1.5 text-green-700 rounded-base hover:bg-green-100 hover:text-green-900 group"
+                href="/products"
+                className="flex items-center px-2 py-1.5 text-green-700 rounded hover:bg-green-100 hover:text-green-900 group"
               >
                 <svg
-                  className="shrink-0 w-5 h-5 transition duration-75 group-hover:text-green-900"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
+                  className="shrink-0 w-5 h-5 group-hover:text-green-900"
                   fill="none"
                   viewBox="0 0 24 24"
                 >
@@ -295,36 +279,89 @@ const HomePage = () => {
                 <span className="flex-1 ms-3 whitespace-nowrap">Products</span>
               </a>
             </li>
-            <li>
-              <a
-                href="#"
-                className="flex items-center px-2 py-1.5 text-green-700 rounded-base hover:bg-green-100 hover:text-green-900 group"
-              >
-                <svg
-                  className="shrink-0 w-5 h-5 transition duration-75 group-hover:text-green-900"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2"
-                  />
-                </svg>
-                <span className="flex-1 ms-3 whitespace-nowrap">Sign In</span>
-              </a>
-            </li>
           </ul>
         </div>
       </aside>
 
-      {/* Main content area removed — navbar and sidebar untouched */}
+    
+     {/* ---------- MAIN ---------- */}
+<main className="pt-20 sm:ml-64 p-4">
+  {/* Action buttons */}
+  <div className="flex justify-center gap-4 mb-8">
+    <Link
+      to="/create"
+      className="bg-green-500 hover:bg-green-600 text-white font-semibold px-5 py-3 rounded-lg shadow-sm transition"
+    >
+      List Restaurant
+    </Link>
+
+    <button
+      type="button"
+      className="bg-green-100 hover:bg-green-200 text-green-700 font-semibold px-5 py-3 rounded-lg border border-green-300 transition"
+    > <Link to="/join-hotel">
+      Join Restaurant
+      </Link>
+    </button>
+  </div>
+
+  {/* Restaurants */}
+  <div className="max-w-2xl mx-auto">
+    <h2 className="text-xl font-bold text-gray-800 mb-4">
+      Joined Hotels
+    </h2>
+
+    {groups.length === 0 ? (
+      <div className="text-center py-10 bg-gray-50 rounded-xl border border-gray-200">
+        <p className="text-gray-500">
+          You haven't joined any restaurants yet.
+        </p>
+      </div>
+    ) : (
+      <div className="space-y-3">
+        {groups.map((group) => (
+          <div
+            key={group._id}
+            className="flex items-center gap-4 p-4 bg-white border border-green-100 rounded-xl shadow-sm hover:shadow-md hover:border-green-300 transition cursor-pointer"
+          >
+            {/* Restaurant avatar */}
+            <div className="w-14 h-14 rounded-full overflow-hidden bg-green-100 shrink-0">
+              {group.avatar ? (
+                 <div className="w-16 h-16 rounded-full overflow-hidden">
+              <img
+                src={group.avatar}
+                alt="preview"
+                className="w-full h-full object-cover scale-125"
+              />
+            </div>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-green-600 font-bold">
+                  {group.name?.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+
+            {/* Restaurant information */}
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-gray-800 truncate">
+                {group.name}
+              </h3>
+
+              <p className="text-sm text-gray-500">
+                
+              </p>
+            </div>
+
+            {/* Arrow */}
+            <span className="text-green-500 text-xl">
+              →
+            </span>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</main>
+
     </div>
   );
 };

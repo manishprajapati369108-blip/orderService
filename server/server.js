@@ -4,7 +4,9 @@ import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
 import cors from "cors";
 import authMiddleware from "./middleware/authMiddleware.js";
-import ParticipantAuth from "./Routes/Owner/ParticipantAuth.js"
+import ParticipantAuth from "./Routes/Owner/ParticipantAuth.js";
+import Restaurant from "./Routes/Owner/Restaurant.js"
+import Fetch from "./Routes/Owner/Fetch.js"
 
 const app = express()
 
@@ -17,7 +19,8 @@ app.use(cors({
 }))
 
 app.use("/auth", ParticipantAuth);
-app.use
+app.use("/restaurant", authMiddleware, Restaurant);
+app.use("/fetch", authMiddleware, Fetch);
 
 const startServer = async() => {
     try {

@@ -13,3 +13,5 @@ function generateUniqueUid() {
 }
 
 console.log(generateUniqueUid()); // Always unique
+
+export default generateUniqueUid;

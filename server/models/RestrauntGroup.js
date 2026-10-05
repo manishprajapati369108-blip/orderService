@@ -1,13 +1,9 @@
 import mongoose from "mongoose";
+import generateUid from "../utils/generateId.js";
 
 const conversationSchema = new mongoose.Schema(
   {
-    type: {
-      type: String,
-      enum: ["direct", "group"],
-      required: true,
-    },
-
+    uid: { type: String, default: generateUid, index: true },
     participants: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -15,12 +11,6 @@ const conversationSchema = new mongoose.Schema(
         required: true,
       },
     ],
-
-    directKey: {
-      type: String,
-      unique: true,
-      sparse: true,
-    },
 
     name: {
       type: String,
@@ -32,10 +22,12 @@ const conversationSchema = new mongoose.Schema(
       default: null,
     },
 
-    groupAdmin: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    }],
+    groupAdmin: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Participant",
+      },
+    ],
 
     unreadCount: {
       type: Number,

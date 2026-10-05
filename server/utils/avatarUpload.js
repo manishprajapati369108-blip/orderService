@@ -21,7 +21,7 @@ const avatarUpload = async (req, res) => {
     }
 
     const { data: getUrlImage } = supabase.storage
-      .from("chat-app-1")
+      .from("order-service-1")
       .getPublicUrl(data.path);
 
     const imageUrl = getUrlImage.publicUrl;
@@ -41,4 +41,4 @@ const avatarUpload = async (req, res) => {
   }
 };
 
-export default avatarUpload
+export default avatarUpload;
