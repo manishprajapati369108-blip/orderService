@@ -9,6 +9,7 @@ const AuthProvider = ({ children }) => {
   const [name, setName] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [email, setEmail] = useState(null)
+  const [userId, setUserId] = useState("")
   const [loading, setLoading] = useState(true)
 
   const navigate = useNavigate()
@@ -18,8 +19,10 @@ const AuthProvider = ({ children }) => {
       try {
         const response = await api.get("/auth/me");
         setAvatar(response.data.user.avatar);
+
         setName(response.data.user.name);
-        setEmail(response.data.user.email)
+        setEmail(response.data.user.email);
+        setUserId(response.data.user._id);
         setIsLoggedIn(true)
         
       } catch (error) {
@@ -41,6 +44,7 @@ const AuthProvider = ({ children }) => {
     avatar,
     isLoggedIn,
     loading,
+    userId,
     setIsLoggedIn,
     name,
     email

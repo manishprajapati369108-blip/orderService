@@ -24,11 +24,40 @@ router.get("/connected-restaurant", async(req,res) => {
         error: "Server Error"
     })
 }
+}) 
+
+//join restaurant by searching uid
+
+router.get("/join-group", async(req, res) => {
+    try {
+        const currentUserId = req.user._id;
+        const uid = req.query.q
+
+        if(!uid || !uid.trim()) {
+             return res.status(200).json({
+                success: true,
+                data: [],
+             })
+        };
+        
+        const data = await Conversation.find({
+            participants: { $ne : currentUserId },
+            uid: uid.trim(),
+        }).limit(10);
+
+        res.status(200).json({
+            success: true,
+            data,
+        })
+
+    } catch(error) {
+        console.log(error)
+        return res.status(500).json({
+            success: false,
+            error: "Server Error Try Again"
+        })
+    }
 })
-
-
-
-//join another restaurant by searching
 
 export default router;
 

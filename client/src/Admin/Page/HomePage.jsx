@@ -347,7 +347,7 @@ const HomePage = () => {
               </h3>
 
               <p className="text-sm text-gray-500">
-                
+               <strong>ID</strong> {group.uid}
               </p>
             </div>
 
