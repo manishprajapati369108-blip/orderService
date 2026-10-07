@@ -10,6 +10,7 @@ import ParticipantAuth from "./Routes/Owner/ParticipantAuth.js";
 import Restaurant from "./Routes/Owner/Restaurant.js";
 import Fetch from "./Routes/Owner/Fetch.js";
 import socketRoutes from "./Routes/Socket/index.js";
+import socketMiddleware from "./middleware/socketMiddleware.js";
 
 const app = express();
 
@@ -39,13 +40,21 @@ const io= new Server(server, {
     },
 });
 
-io.on("connection", (socket) => {
-    console.log("Socket Connected:", socket.id);
+app.set("io",io);
 
+
+io.use(socketMiddleware);
+
+io.on("connection", (socket) => {
+
+    socket.join(`user:${socket.userId}`);
+
+    console.log(`user ${socket.userId} joined own room`)
+    
     socketRoutes(io, socket);
 
-    socket.on("disconnect", () => {
-        console.log("Socket disconnected:", socket.id);
+    socket.on("disconnect", (reason) => {
+        console.log("Socket disconnected:", socket.id, reason);
     })
 
 })

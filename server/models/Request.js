@@ -11,7 +11,7 @@ const joinRequestSchema = new mongoose.Schema(
 
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Participant",
       required: true,
       index: true,
     },
@@ -25,19 +25,36 @@ const joinRequestSchema = new mongoose.Schema(
       type: Date,
       default: Date.now(),
     },
+    
     respondedAt: Date,
+
     respondedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Participant",
     },
+
+    receiver : [
+      {
+        user : {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Participant",
+          required: true
+        },
+        isRead: {
+          type: Boolean,
+          default: false,
+        },
+
+        readAt: {
+          type: Date,
+          default: null,
+        }
+      }
+    ],
+
     message: {
       type: String,
       trim: true,
-    },
-
-    isRead: {
-      type: Boolean,
-      default: false,
     },
   },
   { timestamps: true },

@@ -5,7 +5,7 @@ const noticeSchema = new mongoose.Schema(
     // 👇 Which restaurant this notice belongs to
     restaurant: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Restaurant',
+      ref: 'Conversation',
       required: true,
       index: true,
     },

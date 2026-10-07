@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import api from "../../utils/axios.js";
+import { useNavigate } from "react-router-dom";
 
 const Search = () => {
   const [hotels, setHotels] = useState([]);
   const [uid, setUid] = useState("");
+  const [message, setMessage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate()
 
   useEffect(() => {
     // Don't search if uid is empty
@@ -40,6 +43,21 @@ const Search = () => {
 
     fetchSearch();
   }, [uid]);
+
+  const handleJoin = async(hotelId) => {
+    
+    try {
+      await api.post(`/restaurant/${hotelId}/join-request`);
+
+      setMessage("Request Sent Successfully")
+      setTimeout(() => {
+        navigate("/home");
+      }, 2000)
+    } catch(error) {
+      console.log("Error:", error);
+    }
+
+  }
 
   return (
     <div>
@@ -94,7 +112,7 @@ const Search = () => {
               <p className="font-medium">{hotel.name || hotel.uid}</p>
               <p className="text-sm text-gray-500">UID: {hotel.uid}</p>
               </div>
-              <div className="ml-auto mr-5">Join</div>
+              <div className="ml-auto mr-5" onClick={handleJoin(hotel._id)}>Join</div>
             </div>
             
           ))}

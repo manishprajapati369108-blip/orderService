@@ -27,27 +27,20 @@ const HomePage = () => {
     }
   };
 
-  
-
   //fetching the restaurant where i am  a member
- useEffect(() => {
-  const fetchingHotel = async() => {
-    try {
-    const response = await api.get("/fetch/connected-restaurant");
+  useEffect(() => {
+    const fetchingHotel = async () => {
+      try {
+        const response = await api.get("/fetch/connected-restaurant");
 
-    setGroups(response?.data?.group)
+        setGroups(response?.data?.group);
+      } catch (error) {
+        console.log(error);
+      }
+    };
 
-    }
-    catch(error) {
-      console.log(error)
-    }
-
-  }
-
-  fetchingHotel()
- }, [])
-
-
+    fetchingHotel();
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">
@@ -89,12 +82,35 @@ const HomePage = () => {
                   alt="Logo"
                 />
                 <span className="self-center text-lg font-semibold whitespace-nowrap text-green-700">
-                  Flowbite
+                  Order Service
                 </span>
               </a>
             </div>
 
             <div className="flex items-center">
+              <div>
+                <button
+                  type="button"
+                  className="relative inline-flex items-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none"
+                >
+                 
+                  <svg
+                    className="w-6 h-6 text-gray-800 dark:text-white"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M17.133 12.632v-1.8a5.406 5.406 0 0 0-4.154-5.262.955.955 0 0 0 .021-.106V3.1a1 1 0 0 0-2 0v2.364a.955.955 0 0 0 .021.106 5.406 5.406 0 0 0-4.154 5.262v1.8C6.867 15.018 5 15.614 5 16.807 5 17.4 5 18 5.538 18h12.924C19 18 19 17.4 19 16.807c0-1.193-1.867-1.789-1.867-4.175ZM6 6a1 1 0 0 1-.707-.293l-1-1a1 1 0 0 1 1.414-1.414l1 1A1 1 0 0 1 6 6Zm-2 4H3a1 1 0 0 1 0-2h1a1 1 0 1 1 0 2Zm14-4a1 1 0 0 1-.707-1.707l1-1a1 1 0 1 1 1.414 1.414l-1 1A1 1 0 0 1 18 6Zm3 4h-1a1 1 0 1 1 0-2h1a1 1 0 1 1 0 2ZM8.823 19a3.453 3.453 0 0 0 6.354 0H8.823Z" />
+                  </svg>
+
+                  <div className="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-danger border-2 border-buffer rounded-full -top-2 inset-e-2">
+                    8
+                  </div>
+                </button>
+              </div>
               <div className="flex items-center ms-3">
                 <button
                   type="button"
@@ -283,85 +299,81 @@ const HomePage = () => {
         </div>
       </aside>
 
-    
-     {/* ---------- MAIN ---------- */}
-<main className="pt-20 sm:ml-64 p-4">
-  {/* Action buttons */}
-  <div className="flex justify-center gap-4 mb-8">
-    <Link
-      to="/create"
-      className="bg-green-500 hover:bg-green-600 text-white font-semibold px-5 py-3 rounded-lg shadow-sm transition"
-    >
-      List Restaurant
-    </Link>
-
-    <button
-      type="button"
-      className="bg-green-100 hover:bg-green-200 text-green-700 font-semibold px-5 py-3 rounded-lg border border-green-300 transition"
-    > <Link to="/join-hotel">
-      Join Restaurant
-      </Link>
-    </button>
-  </div>
-
-  {/* Restaurants */}
-  <div className="max-w-2xl mx-auto">
-    <h2 className="text-xl font-bold text-gray-800 mb-4">
-      Joined Hotels
-    </h2>
-
-    {groups.length === 0 ? (
-      <div className="text-center py-10 bg-gray-50 rounded-xl border border-gray-200">
-        <p className="text-gray-500">
-          You haven't joined any restaurants yet.
-        </p>
-      </div>
-    ) : (
-      <div className="space-y-3">
-        {groups.map((group) => (
-          <div
-            key={group._id}
-            className="flex items-center gap-4 p-4 bg-white border border-green-100 rounded-xl shadow-sm hover:shadow-md hover:border-green-300 transition cursor-pointer"
+      {/* ---------- MAIN ---------- */}
+      <main className="pt-20 sm:ml-64 p-4">
+        {/* Action buttons */}
+        <div className="flex justify-center gap-4 mb-8">
+          <Link
+            to="/create"
+            className="bg-green-500 hover:bg-green-600 text-white font-semibold px-5 py-3 rounded-lg shadow-sm transition"
           >
-            {/* Restaurant avatar */}
-            <div className="w-14 h-14 rounded-full overflow-hidden bg-green-100 shrink-0">
-              {group.avatar ? (
-                 <div className="w-16 h-16 rounded-full overflow-hidden">
-              <img
-                src={group.avatar}
-                alt="preview"
-                className="w-full h-full object-cover scale-125"
-              />
-            </div>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-green-600 font-bold">
-                  {group.name?.charAt(0).toUpperCase()}
-                </div>
-              )}
-            </div>
+            List Restaurant
+          </Link>
 
-            {/* Restaurant information */}
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-gray-800 truncate">
-                {group.name}
-              </h3>
+          <button
+            type="button"
+            className="bg-green-100 hover:bg-green-200 text-green-700 font-semibold px-5 py-3 rounded-lg border border-green-300 transition"
+          >
+            {" "}
+            <Link to="/join-hotel">Join Restaurant</Link>
+          </button>
+        </div>
 
-              <p className="text-sm text-gray-500">
-               <strong>ID</strong> {group.uid}
+        {/* Restaurants */}
+        <div className="max-w-2xl mx-auto">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">
+            Joined Hotels
+          </h2>
+
+          {groups.length === 0 ? (
+            <div className="text-center py-10 bg-gray-50 rounded-xl border border-gray-200">
+              <p className="text-gray-500">
+                You haven't joined any restaurants yet.
               </p>
             </div>
+          ) : (
+            <div className="space-y-3">
+              {groups.map((group) => (
+                <div
+                  key={group._id}
+                  className="flex items-center gap-4 p-4 bg-white border border-green-100 rounded-xl shadow-sm hover:shadow-md hover:border-green-300 transition cursor-pointer"
+                >
+                  {/* Restaurant avatar */}
+                  <div className="w-14 h-14 rounded-full overflow-hidden bg-green-100 shrink-0">
+                    {group.avatar ? (
+                      <div className="w-16 h-16 rounded-full overflow-hidden">
+                        <img
+                          src={group.avatar}
+                          alt="preview"
+                          className="w-full h-full object-cover scale-125"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-green-600 font-bold">
+                        {group.name?.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
 
-            {/* Arrow */}
-            <span className="text-green-500 text-xl">
-              →
-            </span>
-          </div>
-        ))}
-      </div>
-    )}
-  </div>
-</main>
+                  {/* Restaurant information */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-800 truncate">
+                      {group.name}
+                    </h3>
 
+                    <p className="text-sm text-gray-500">
+                      <strong>ID</strong> {group.uid}
+                    </p>
+                  </div>
+
+                  {/* Arrow */}
+                  <span className="text-green-500 text-xl">→</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 };
