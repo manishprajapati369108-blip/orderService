@@ -69,7 +69,7 @@ router.get("/join-requests", async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: requestLists,
+      list: requestLists,
     });
   } catch (error) {
     console.error(error);
@@ -84,7 +84,7 @@ router.get("/join-requests", async (req, res) => {
 router.get("/unread-count", async (req, res) => {
   try {
     const currentUser = req.user._id;
-
+ 
     const count = await JoinRequest.countDocuments({
       receiver: {
         $elemMatch: {

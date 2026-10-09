@@ -7,86 +7,70 @@ const Search = () => {
   const [uid, setUid] = useState("");
   const [message, setMessage] = useState(null);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Don't search if uid is empty
-    const fetchSearch = () => {
-      if (!uid.trim()) {
-        setHotels([]);
-        return;
-      }
 
-      const timer = setTimeout(async () => {
-        try {
-          setLoading(true);
-          if(!uid.trim()) return
-          const response = await api.get(
-            `/fetch/join-group?q=${encodeURIComponent(uid)}`,
-          );
-
-          console.log("Search response:", response.data);
-
-          if (response.data.success) {
-            setHotels(response.data.data);
-          }
-        } catch (error) {
-          console.error("Search error:", error);
-          setHotels([]);
-        } finally {
-          setLoading(false);
-        }
-      }, 500);
-
-      return () => clearTimeout(timer);
-    };
-
-    fetchSearch();
-  }, [uid]);
-
-  const handleJoin = async(hotelId) => {
-    
-    try {
-      await api.post(`/restaurant/${hotelId}/join-request`);
-
-      setMessage("Request Sent Successfully")
-      setTimeout(() => {
-        navigate("/home");
-      }, 2000)
-    } catch(error) {
-      console.log("Error:", error);
+    const searchFetch = () => {
+    if (!uid.trim()) {
+      setHotels([]);
+      setLoading(false);
+      return;
     }
 
+    const timer = setTimeout(async () => {
+      try {
+        setLoading(true);
+        const response = await api.get(
+          `/fetch/join-group?q=${encodeURIComponent(uid)}`
+        );
+        if (response.data.success) {
+          setHotels(response.data.data);
+        }
+      } catch (error) {
+        console.error("Search error:", error);
+        setHotels([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+
+  }
+
+  searchFetch()
+  }, [uid]);
+
+  const handleJoin = async (hotelId) => {
+    try {
+      const response = await api.post(`/restaurant/${hotelId}/join-request`);
+      setMessage(response?.data?.message ?? "Request sent");
+      setTimeout(() => navigate("/home"), 2000);
+    } catch (error) {
+      console.log("Error:", error);
+      console.log("Status:", error.response?.status);
+    console.log("Server says:", error.response?.data);
+      setMessage(error?.response?.data?.message ?? "Something went wrong");
+    }
+  };
+
+  if (message) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <p className="text-lg font-medium">{message}</p>
+      </div>
+    );
   }
 
   return (
     <div>
       <form className="max-w-md mx-auto" onSubmit={(e) => e.preventDefault()}>
-        <label htmlFor="search" className="sr-only">
-          Search
-        </label>
-
+        <label htmlFor="search" className="sr-only">Search</label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <svg
-              className="w-4 h-4 text-gray-500"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"
-              />
-            </svg>
+            <svg className="w-4 h-4 text-gray-500" /* ... */ />
           </div>
-
           <input
             type="search"
             id="search"
@@ -98,23 +82,27 @@ const Search = () => {
         </div>
       </form>
 
-      {/* Display results */}
       {loading && <p className="text-center mt-4">Searching...</p>}
 
       {!loading && hotels.length > 0 && (
         <div className="mt-4 max-w-md mx-auto">
           {hotels.map((hotel) => (
-            
             <div
               key={hotel._id}
-              className="p-3 border rounded-lg mb-2 hover:bg-gray-50 cursor-pointer flex "
-            > <div>
-              <p className="font-medium">{hotel.name || hotel.uid}</p>
-              <p className="text-sm text-gray-500">UID: {hotel.uid}</p>
+              className="p-3 border rounded-lg mb-2 hover:bg-gray-50 flex items-center"
+            >
+              <div>
+                <p className="font-medium">{hotel.name || hotel.uid}</p>
+                <p className="text-sm text-gray-500">UID: {hotel.uid}</p>
               </div>
-              <div className="ml-auto mr-5" onClick={handleJoin(hotel._id)}>Join</div>
+              <button
+                type="button"
+                className="ml-auto mr-5 px-3 py-1 bg-green-600 text-white rounded"
+                onClick={() => handleJoin(hotel._id)}
+              >
+                Join
+              </button>
             </div>
-            
           ))}
         </div>
       )}

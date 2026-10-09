@@ -8,6 +8,15 @@ const joinRequestSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    name : {
+      type: String,
+      default: null
+    },
+
+    image : {
+      type: String,
+      default: null
+    },
 
     user: {
       type: mongoose.Schema.Types.ObjectId,

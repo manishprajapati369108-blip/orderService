@@ -62,13 +62,13 @@ router.post("/:hotelId/join-request", async (req, res) => {
     //it gives array of admin ids
     const admins = hotel.groupAdmin;
 
-    if (isParticipant(hotelId, userId)) {
+    if (isParticipant(hotel, userId)) {
       return res.status(400).json({
         success: false,
         message: "You are already a member",
       });
     }
-
+ 
     let request = await JoinRequest.findOne({
       conversation: hotelId,
       user: userId,
@@ -110,6 +110,8 @@ router.post("/:hotelId/join-request", async (req, res) => {
       request = await JoinRequest.create({
         conversation: hotelId,
         user: userId,
+        name: user.name,
+        image:user.avatar,
         status: "pending",
         message: requestMessage,
         receiver: receivers,
@@ -119,9 +121,12 @@ router.post("/:hotelId/join-request", async (req, res) => {
     //get socket io
     const io = req.app.get("io");
 
+    const adminIds = new Set(admins.map(String));
+
     //sent real time message
-    admins.forEach((admin) => {
+    adminIds.forEach((admin) => {
       io.to(`user:${admin}`).emit("join-request:new", request);
+      io.to(`user:${admin}`).emit("newRequestMessage");
     });
 
     return res.status(201).json({

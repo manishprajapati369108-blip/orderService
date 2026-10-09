@@ -1,4 +1,4 @@
-const isParticipant = async (conversation, userId) => {
+const isParticipant = (conversation, userId) => {
   return conversation.participants.some(
     (particpant) => particpant.toString() === userId.toString(),
   );
@@ -6,8 +6,9 @@ const isParticipant = async (conversation, userId) => {
 
 const isAdmin = (conversation, userId) => {
   return (
-    conversation.type === "group" &&
-    conversation.groupAdmin.toString() === userId.toString()
+    conversation.groupAdmin.some(
+        (admin) => admin.toString() === userId.toString()
+    )
   );
 };
 
