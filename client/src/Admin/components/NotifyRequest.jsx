@@ -16,48 +16,67 @@ const NotifyRequest = () => {
     }
   };
 
-  //this when i open the page
+  // initial load
   useEffect(() => {
-    const intialRequests = () => {
-      loadRequest();
-    };
-    intialRequests();
+    const load = () => {
+    loadRequest();
+    }
+
+    load()
   }, []);
 
-  // when i am in component real time request show
+  // real-time: new request arrives
   useEffect(() => {
     if (!socket) return;
 
     const handleNewRequest = (request) => {
-      //for preventing same id two times
-      //if request id and previous request id has same id then give previos  other wise new one then previos in the array
       setRequests((prev) =>
-        prev.some((r) => r._id === request._id) ? prev : [request, ...prev],
+        prev.some((r) => r._id === request._id) ? prev : [request, ...prev]
       );
     };
 
     socket.on("join-request:new", handleNewRequest);
+    return () => socket.off("join-request:new", handleNewRequest);
+  }, [socket]);
 
-    return () => {
-      socket.off("join-request:new", handleNewRequest);
+  // real-time: request handled by ANY admin (including me) → remove from list
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleHandled = ({ requestId }) => {
+      setRequests((prev) => prev.filter((r) => r._id !== requestId));
     };
+
+    socket.on("join-request:handled", handleHandled);
+    return () => socket.off("join-request:handled", handleHandled);
   }, [socket]);
 
   const handleAccept = async (requestId) => {
     try {
-      await api.patch(`/join-request/${requestId}/accept`);
+      await api.patch(`/restaurant/join-request/${requestId}/accept`);
       setRequests((prev) => prev.filter((r) => r._id !== requestId));
     } catch (error) {
-      console.log(error?.response?.data?.message || "Failed to accept");
+      const message = error?.response?.data?.message || "Failed to accept";
+      console.log(message); 
+
+      // if it was already handled, silently remove it from the list
+      if (message === "Request already handled") {
+        setRequests((prev) => prev.filter((r) => r._id !== requestId));
+      }
     }
   };
 
   const handleDecline = async (requestId) => {
     try {
-      await api.patch(`/join-request/${requestId}/decline`);
+      await api.patch(`/restaurant/join-request/${requestId}/decline`);
       setRequests((prev) => prev.filter((r) => r._id !== requestId));
     } catch (error) {
-      console.log(error?.response?.data?.message || "Failed to decline");
+      const message = error?.response?.data?.message || "Failed to decline";
+      console.log(message);
+
+      if (message === "Request already handled") {
+        setRequests((prev) => prev.filter((r) => r._id !== requestId));
+      }
     }
   };
 
@@ -72,8 +91,8 @@ const NotifyRequest = () => {
           <div className="w-12 h-12 rounded-full overflow-hidden bg-green-100 shrink-0 flex items-center justify-center">
             {request?.image ? (
               <img
-                src={request?.image}
-                alt={request?.name}
+                src={request.image}
+                alt={request.name}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -91,7 +110,7 @@ const NotifyRequest = () => {
             <p className="text-sm text-gray-500 truncate">{request.message}</p>
             <p className="text-xs text-gray-400 mt-1">
               {new Date(
-                request.requestedAt ?? request.createdAt,
+                request.requestedAt ?? request.createdAt
               ).toLocaleString()}
             </p>
           </div>
