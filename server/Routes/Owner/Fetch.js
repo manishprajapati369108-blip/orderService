@@ -65,7 +65,9 @@ router.get("/join-requests", async (req, res) => {
 
     const requestLists = await JoinRequest.find({
       "receiver.user": currentUser,
-    });
+      status: "pending"
+    }).sort({requestedAt: -1})
+    .lean();
 
     res.status(200).json({
       success: true,

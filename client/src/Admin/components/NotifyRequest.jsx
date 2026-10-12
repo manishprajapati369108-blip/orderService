@@ -43,6 +43,24 @@ const NotifyRequest = () => {
     };
   }, [socket]);
 
+  const handleAccept = async (requestId) => {
+    try {
+      await api.patch(`/join-request/${requestId}/accept`);
+      setRequests((prev) => prev.filter((r) => r._id !== requestId));
+    } catch (error) {
+      console.log(error?.response?.data?.message || "Failed to accept");
+    }
+  };
+
+  const handleDecline = async (requestId) => {
+    try {
+      await api.patch(`/join-request/${requestId}/decline`);
+      setRequests((prev) => prev.filter((r) => r._id !== requestId));
+    } catch (error) {
+      console.log(error?.response?.data?.message || "Failed to decline");
+    }
+  };
+
   return (
     <div className="space-y-3">
       {requests.map((request) => (
@@ -52,15 +70,15 @@ const NotifyRequest = () => {
         >
           {/* Avatar */}
           <div className="w-12 h-12 rounded-full overflow-hidden bg-green-100 shrink-0 flex items-center justify-center">
-            {request.user?.avatar ? (
+            {request?.image ? (
               <img
-                src={request.user.avatar}
-                alt={request.user.name}
+                src={request?.image}
+                alt={request?.name}
                 className="w-full h-full object-cover"
               />
             ) : (
               <span className="text-green-600 font-bold">
-                {request.user?.name?.charAt(0).toUpperCase() ?? "?"}
+                {request?.name?.charAt(0).toUpperCase() ?? "?"}
               </span>
             )}
           </div>
@@ -68,7 +86,7 @@ const NotifyRequest = () => {
           {/* Info */}
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-gray-800 truncate">
-              {request.user?.name ?? "Unknown user"}
+              {request?.name ?? "Unknown user"}
             </h3>
             <p className="text-sm text-gray-500 truncate">{request.message}</p>
             <p className="text-xs text-gray-400 mt-1">
@@ -82,12 +100,14 @@ const NotifyRequest = () => {
           <div className="flex gap-2 shrink-0">
             <button
               type="button"
+              onClick={() => handleAccept(request._id)}
               className="px-3 py-1.5 text-sm font-medium text-white bg-green-500 hover:bg-green-600 rounded-lg transition"
             >
               Accept
             </button>
             <button
               type="button"
+              onClick={() => handleDecline(request._id)}
               className="px-3 py-1.5 text-sm font-medium text-green-700 bg-green-100 hover:bg-green-200 border border-green-300 rounded-lg transition"
             >
               Decline

@@ -70,7 +70,7 @@ const joinRequestSchema = new mongoose.Schema(
 
 );
 
-joinRequestSchema.index({ conversation: 1, user: 1 }, { unique: true });
+joinRequestSchema.index({ conversation: 1, user: 1 }, { unique: true, partialFilterExpression: { status: "pending"} });
 
 const JoinRequest = mongoose.model("JoinRequest", joinRequestSchema);
 export default JoinRequest;

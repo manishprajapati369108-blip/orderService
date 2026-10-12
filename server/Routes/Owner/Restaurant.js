@@ -1,7 +1,7 @@
 import express from "express";
 import Conversation from "../../models/RestrauntGroup.js";
 import Participant from "../../models/Participant.js";
-import { isParticipant } from "../../utils/conversationPermission.js";
+import { isParticipant, isAdmin } from "../../utils/conversationPermission.js";
 import JoinRequest from "../../models/Request.js";
 
 const router = express.Router();
@@ -68,7 +68,7 @@ router.post("/:hotelId/join-request", async (req, res) => {
         message: "You are already a member",
       });
     }
- 
+
     let request = await JoinRequest.findOne({
       conversation: hotelId,
       user: userId,
@@ -98,20 +98,19 @@ router.post("/:hotelId/join-request", async (req, res) => {
     }));
 
     if (request) {
-      ((request.status = "pending"),
-        (request.message = requestMessage),
-        (request.requestedAt = new Date()));
+      request.status = "pending";
+      request.message = requestMessage;
+      request.requestedAt = new Date();
       request.respondedAt = null;
       request.respondedBy = null;
       request.receiver = receivers;
-
       await request.save();
     } else {
       request = await JoinRequest.create({
         conversation: hotelId,
         user: userId,
         name: user.name,
-        image:user.avatar,
+        image: user.avatar,
         status: "pending",
         message: requestMessage,
         receiver: receivers,
@@ -139,6 +138,141 @@ router.post("/:hotelId/join-request", async (req, res) => {
       success: false,
       message: "failed to send Join request",
     });
+  }
+});
+
+//accept the join request
+router.patch("/join-request/:requestId/accept", async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const currentUserId = req.user._id;
+
+    const request = await JoinRequest.findById(requestId);
+    if (!request) {
+      return res.status(404).json({ success: false, message: "Request not found" });
+    }
+
+    if (request.status !== "pending") {
+      return res.status(400).json({ success: false, message: "Request already handled" });
+    }
+
+    const hotel = await Conversation.findById(request.conversation);
+    if (!hotel) {
+      return res.status(404).json({ success: false, message: "Group not found" });
+    }
+
+    const senderId = request.user;
+
+    if (!isAdmin(hotel, currentUserId)) {
+      return res.status(401).json({
+        success: false,
+        message: "Only Admin can accept the request",
+      });
+    }
+
+    if (isParticipant(hotel, senderId)) {
+      // already a member — still mark the request handled so it leaves "pending"
+      request.status = "accepted";
+      request.respondedAt = new Date();
+      request.respondedBy = currentUserId;
+      request.receiver = request.receiver.map((r) => ({
+        user: r.user,
+        isRead: true,
+        readAt: r.readAt ?? new Date(),
+      }));
+      await request.save();
+      return res.status(400).json({ success: false, message: "Already a member" });
+    }
+
+    // 1. add participant + persist
+    hotel.participants.push(senderId);
+    await hotel.save();
+
+    // 2. flip status + mark all receivers as read
+    request.status = "accepted";
+    request.respondedAt = new Date();
+    request.respondedBy = currentUserId;
+    request.receiver = request.receiver.map((r) => ({
+      user: r.user,
+      isRead: true,
+      readAt: r.readAt ?? new Date(),
+    }));
+    await request.save();
+
+    // 3. real-time notify
+    const io = req.app.get("io");
+
+    //first make array of ids and convert all in string and return many elemntsin array by map now we have all id in array in strings clearly 
+    const notifyIds = new Set([...hotel.groupAdmin, senderId].map(String));
+    notifyIds.forEach((id) => {
+      io.to(`user:${id}`).emit("join-request:handled", {
+        requestId,
+        hotelId: String(request.conversation),
+        status: "accepted",
+      });
+    });
+
+    return res.status(200).json({ success: true, message: "Join request accepted" });
+  } catch (error) {
+    console.error("Error", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
+//decline the request
+router.patch("/join-request/:requestId/decline", async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const currentUserId = req.user._id;
+
+    const request = await JoinRequest.findById(requestId);
+    if (!request) {
+      return res.status(404).json({ success: false, message: "Request not found" });
+    }
+
+    if (request.status !== "pending") {
+      return res.status(400).json({ success: false, message: "Request already handled" });
+    }
+
+    const hotel = await Conversation.findById(request.conversation);
+    if (!hotel) {
+      return res.status(404).json({ success: false, message: "Group not found" });
+    }
+
+    if (!isAdmin(hotel, currentUserId)) {
+      return res.status(401).json({
+        success: false,
+        message: "Only Admin can decline the request",
+      });
+    }
+
+    // flip status + mark all receivers as read
+    request.status = "rejected";
+    request.respondedAt = new Date();
+    request.respondedBy = currentUserId;
+    request.receiver = request.receiver.map((r) => ({
+      user: r.user,
+      isRead: true,
+      readAt: r.readAt ?? new Date(),
+    }));
+    await request.save();
+
+    // real-time notify
+    const io = req.app.get("io");
+
+    const notifyIds = new Set([...hotel.groupAdmin, request.user].map(String));
+    notifyIds.forEach((id) => {
+      io.to(`user:${id}`).emit("join-request:handled", {
+        requestId,
+        hotelId: String(request.conversation),
+        status: "rejected",
+      });
+    });
+
+    return res.status(200).json({ success: true, message: "Join request declined" });
+  } catch (error) {
+    console.error("Error", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 
