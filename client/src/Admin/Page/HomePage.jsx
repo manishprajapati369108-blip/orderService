@@ -17,15 +17,14 @@ const HomePage = () => {
     initFlowbite();
   }, []);
 
-
   const loadCount = async () => {
-      try {
-        const response = await api.get("/fetch/unread-count");
-        setCount(response?.data?.count);
-      } catch (error) {
-        console.log(error);
-      }
-    };
+    try {
+      const response = await api.get("/fetch/unread-count");
+      setCount(response?.data?.count);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const handleLogout = async (e) => {
     e.preventDefault();
@@ -59,26 +58,24 @@ const HomePage = () => {
 
   useEffect(() => {
     const initialCount = () => {
+      loadCount();
+    };
 
-    loadCount();
-
-    }
-
-    initialCount()
+    initialCount();
   }, []);
 
-  //when new request comes 
+  //when new request comes
   useEffect(() => {
     const newCount = () => {
-       loadCount()
-    }
+      loadCount();
+    };
 
     socket.on("newRequestMessage", newCount);
 
     return () => {
       socket.off("newRequestMessage", newCount);
-    }
-  }, [socket])
+    };
+  }, [socket]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -132,25 +129,25 @@ const HomePage = () => {
                   className="relative inline-flex items-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none"
                 >
                   <Link to="/requests">
-                  <svg
-                    className="w-6 h-6 text-gray-800 dark:text-white"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M17.133 12.632v-1.8a5.406 5.406 0 0 0-4.154-5.262.955.955 0 0 0 .021-.106V3.1a1 1 0 0 0-2 0v2.364a.955.955 0 0 0 .021.106 5.406 5.406 0 0 0-4.154 5.262v1.8C6.867 15.018 5 15.614 5 16.807 5 17.4 5 18 5.538 18h12.924C19 18 19 17.4 19 16.807c0-1.193-1.867-1.789-1.867-4.175ZM6 6a1 1 0 0 1-.707-.293l-1-1a1 1 0 0 1 1.414-1.414l1 1A1 1 0 0 1 6 6Zm-2 4H3a1 1 0 0 1 0-2h1a1 1 0 1 1 0 2Zm14-4a1 1 0 0 1-.707-1.707l1-1a1 1 0 1 1 1.414 1.414l-1 1A1 1 0 0 1 18 6Zm3 4h-1a1 1 0 1 1 0-2h1a1 1 0 1 1 0 2ZM8.823 19a3.453 3.453 0 0 0 6.354 0H8.823Z" />
-                  </svg>
+                    <svg
+                      className="w-6 h-6 text-gray-800 dark:text-white"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M17.133 12.632v-1.8a5.406 5.406 0 0 0-4.154-5.262.955.955 0 0 0 .021-.106V3.1a1 1 0 0 0-2 0v2.364a.955.955 0 0 0 .021.106 5.406 5.406 0 0 0-4.154 5.262v1.8C6.867 15.018 5 15.614 5 16.807 5 17.4 5 18 5.538 18h12.924C19 18 19 17.4 19 16.807c0-1.193-1.867-1.789-1.867-4.175ZM6 6a1 1 0 0 1-.707-.293l-1-1a1 1 0 0 1 1.414-1.414l1 1A1 1 0 0 1 6 6Zm-2 4H3a1 1 0 0 1 0-2h1a1 1 0 1 1 0 2Zm14-4a1 1 0 0 1-.707-1.707l1-1a1 1 0 1 1 1.414 1.414l-1 1A1 1 0 0 1 18 6Zm3 4h-1a1 1 0 1 1 0-2h1a1 1 0 1 1 0 2ZM8.823 19a3.453 3.453 0 0 0 6.354 0H8.823Z" />
+                    </svg>
 
-                  {count > 0 ? (
-                    <div className="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-danger border-2 border-buffer rounded-full -top-2 inset-e-2">
-                      {count}
-                    </div>
-                  ) : (
-                    ""
-                  )}
+                    {count > 0 ? (
+                      <div className="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-danger border-2 border-buffer rounded-full -top-2 inset-e-2">
+                        {count}
+                      </div>
+                    ) : (
+                      ""
+                    )}
                   </Link>
                 </button>
               </div>
@@ -410,7 +407,25 @@ const HomePage = () => {
                   </div>
 
                   {/* Arrow */}
-                  <span className="text-green-500 text-xl">→</span>
+                  <Link to={`/hotel/${group._id}`}>
+                    <svg
+                      className="w-6 h-6 text-emerald-400"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 12H5m14 0-4 4m4-4-4-4"
+                      />
+                    </svg>
+                  </Link>
                 </div>
               ))}
             </div>

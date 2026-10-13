@@ -1,8 +1,11 @@
 import express from "express";
 import Conversation from "../../models/RestrauntGroup.js";
 import JoinRequest from "../../models/Request.js";
+import { isParticipant } from "../../utils/conversationPermission.js";
 
 const router = express.Router();
+
+
 
 //fetching the restruants in which i am the member
 
@@ -110,4 +113,47 @@ router.get("/unread-count", async (req, res) => {
     });
   }
 });
+
+
+// get all details in conversation or hotel like participant etc
+router.get("/:groupId", async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const currentUserId = req.user._id;
+
+    // Validate ObjectId
+
+    const conversation = await Conversation.findById(groupId).populate(
+      "participants",
+      "name avatar"
+    );
+
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: "Conversation not found",
+      });
+    }
+
+    // Make sure isParticipant is imported/defined
+    if (!isParticipant(conversation, currentUserId)) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not a member of this conversation",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      result: conversation,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server Problem!!",
+    });
+  }
+});
+
 export default router;
