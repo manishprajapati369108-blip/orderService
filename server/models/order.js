@@ -20,7 +20,7 @@ const orderItemSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ['pending', 'preparing', 'ready', 'served', 'cancelled'],
+      enum: ['pending', 'completed' ,'cancelled'],
       default: 'pending',
     },
   },
@@ -33,6 +33,8 @@ const orderSchema = new mongoose.Schema(
     orderNumber: { type: String, unique: true, index: true },
 
     tableNumber: { type: Number, required: true, index: true },
+
+    type : { type: String, enum: ["Eating", "Packing"], default: "Eating"},
 
     // Guest identity from localStorage
     guestId: { type: String, required: true, index: true },
@@ -52,7 +54,7 @@ const orderSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ['pending', 'preparing', 'ready', 'served', 'paid', 'cancelled'],
+      enum: ['pending','cancelled', "completed"],
       default: 'pending',
       index: true,
     },

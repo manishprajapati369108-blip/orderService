@@ -6,6 +6,7 @@ import CreateRestaurant from "./Admin/components/CreateRestaurant.jsx";
 import Search from "./Admin/Page/Search.jsx";
 import NotifyRequest from "./Admin/components/NotifyRequest.jsx";
 import HotelPage from "./Admin/Page/HotelPage.jsx";
+import Notice from "./Componenets/Notice.jsx";
 
 const App = () => {
   return (
@@ -18,12 +19,13 @@ const App = () => {
 
       <Route path="/create" element={<CreateRestaurant />} />
 
-      <Route path="/hotel/:groupId" element={<HotelPage/>} />
+      <Route path="/hotel/:groupId" element={<HotelPage />} />
 
-      <Route path="/" element={<Preview />}/>
+      <Route path="/hotel/:groupId/notice" element={<Notice />} />
+
+      <Route path="/" element={<Preview />} />
 
       <Route path="/join-hotel" element={<Search />} />
-      
     </Routes>
   );
 };

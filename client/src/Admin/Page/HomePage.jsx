@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { useSocket } from "../context/useContext.jsx";
 
 const HomePage = () => {
-  const { avatar, name, email, setIsLoggedIn } = useAuth();
+  const { avatar, name, email} = useAuth();
   const navigate = useNavigate();
   const [groups, setGroups] = useState([]);
   const [count, setCount] = useState(0);
@@ -30,11 +30,11 @@ const HomePage = () => {
     e.preventDefault();
     try {
       await api.post("/auth/logout", {});
-      setIsLoggedIn(false);
+      
       navigate("/auth");
     } catch (error) {
       console.log("Server Error:", error);
-      setIsLoggedIn(false);
+      
       navigate("/auth");
     }
   };
@@ -199,7 +199,8 @@ const HomePage = () => {
           </div>
         </div>
       </nav>
-
+      
+                    
       {/* ---------- SIDEBAR ---------- */}
       <aside
         id="top-bar-sidebar"

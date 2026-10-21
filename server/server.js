@@ -11,6 +11,7 @@ import Restaurant from "./Routes/Owner/Restaurant.js";
 import Fetch from "./Routes/Owner/Fetch.js";
 import socketRoutes from "./Routes/Socket/index.js";
 import socketMiddleware from "./middleware/socketMiddleware.js";
+import Notice from "./Routes/Owner/Notice.js"
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use(
 app.use("/auth", ParticipantAuth);
 app.use("/restaurant", authMiddleware, Restaurant);
 app.use("/fetch", authMiddleware, Fetch);
+app.use("/notice", authMiddleware, Notice);
 
 
 //Http server for real time communication

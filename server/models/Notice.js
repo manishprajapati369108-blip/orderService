@@ -7,7 +7,7 @@ const noticeSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Conversation',
       required: true,
-      index: true,
+  
     },
 
     title: {
@@ -22,15 +22,6 @@ const noticeSchema = new mongoose.Schema(
       trim: true,
       maxlength: 5000,
     },
-
-    // Visual priority
-    priority: {
-      type: String,
-      enum: ['low', 'normal', 'high', 'urgent'],
-      default: 'normal',
-      index: true,
-    },
-
     // Control visibility
     isPinned: { type: Boolean, default: false, index: true },
   },
