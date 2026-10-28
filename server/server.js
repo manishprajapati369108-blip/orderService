@@ -28,7 +28,7 @@ app.use(
 app.use("/auth", ParticipantAuth);
 app.use("/restaurant", authMiddleware, Restaurant);
 app.use("/fetch", authMiddleware, Fetch);
-app.use("/notice", authMiddleware, Notice);
+app.use("/notice", Notice);
 
 
 //Http server for real time communication
