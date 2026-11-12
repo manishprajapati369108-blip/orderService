@@ -10,25 +10,25 @@ const router = express.Router();
 
 /* GET notices — visible to any user */
 router.get("/:hotelId", async (req, res) => {
-    try {
-        const {hotelId} = req.params;
+  try {
+    const { hotelId } = req.params;
 
-        const result = await Notice.find({
-            restaurant: {$in: hotelId}
-        })
+    const result = await Notice.find({
+      restaurant: { $in: hotelId },
+    });
 
-        res.status(200).json({
-            success: true,
-            result : result,
-        })
-    }catch (error) {
-        console.log(error)
-        return res.status(500).json({
-            success: false,
-            message: "Server Problem"
-        })
-    }
-
+    res.status(200).json({
+      success: true,
+      result: result,
+    });
+    
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server Problem",
+    });
+  }
 });
 
 /* CREATE — admin only */
@@ -68,8 +68,44 @@ router.post("/:hotelId/create", authMiddleware, async (req, res) => {
 
 /* UPDATE — admin only */
 router.patch("/:hotelId/update", authMiddleware, async (req, res) => {
+  try {
+    const { hotelId } = req.params;
+    const updatedNotices = req.body;
+    const currentUserId = req.user._id;
 
+    const hotel = await Conversation.findById(hotelId);
 
+    if (!isAdmin(hotel, currentUserId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Only Admin Can update",
+      });
+    }
+
+    if (!Array.isArray(updatedNotices) || updatedNotices.length === 0) {
+      return res.status(400).json({
+        message: "No notices provided",
+      });
+    }
+
+    const operations = updatedNotices.map(({ _id, title, content }) => ({
+      updateOne: {
+        filter: { _id, restaurant: hotelId },
+        update: { $set: { title, content } },
+      },
+    }));
+
+    const result = await Notice.bulkWrite(operations);
+
+    res.status(200).json({
+      success: false,
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
 });
 
 /*Delete only*/
@@ -104,5 +140,90 @@ router.delete(
     }
   },
 );
+
+router.patch("/:hotelId/:noticeId/pin", async (req, res) => {
+  try {
+    const { hotelId, noticeId } = req.params;
+    const currentUserId = req.user._id;
+
+    const hotel = await Conversation.findById(hotelId);
+
+    if (!hotel) {
+      return res.status(404).json({
+        success: false,
+        message: "Hotel not found",
+      });
+    }
+
+    if (!isAdmin(hotel, currentUserId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorised access!!!",
+      });
+    }
+
+    await Notice.findByIdAndUpdate(
+      { _id: noticeId, restaurant: hotelId },
+
+      {
+        $set: {
+          isPinned: true,
+        },
+      },
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Pinned SuccessFully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server Problem !!",
+    });
+  }
+});
+
+router.patch("/:hotelId/:noticeId/unpin", async (req, res) => {
+  try {
+    const { hotelId, noticeId } = req.params;
+    const currentUserId = req.user._id;
+
+    const hotel = await Conversation.findById(hotelId);
+
+    if (!hotel) {
+      return res.status(404).json({
+        success: false,
+        message: "Hotel not found",
+      });
+    }
+
+    if (!isAdmin(hotel, currentUserId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorised access!!!",
+      });
+    }
+
+    await Notice.findByIdAndUpdate(
+      { _id: noticeId, restaurant: hotelId  },
+      {
+        $set: {
+          isPinned: false,
+        },
+      },
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "unPinned SuccessFully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server Problem !!",
+    });
+  }
+});
 
 export default router;
