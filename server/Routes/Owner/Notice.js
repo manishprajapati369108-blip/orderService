@@ -14,7 +14,10 @@ router.get("/:hotelId", async (req, res) => {
     const { hotelId } = req.params;
 
     const result = await Notice.find({
-      restaurant: { $in: hotelId },
+      restaurant : hotelId ,
+    }).sort({
+      isPinned: -1,
+      createdAt: -1,
     });
 
     res.status(200).json({
@@ -46,7 +49,7 @@ router.post("/:hotelId/create", authMiddleware, async (req, res) => {
       });
     }
 
-    await Notice.insertMany(
+    const result = await Notice.insertMany(
       savedItems.map((item) => ({
         ...item,
         restaurant: hotelId,
@@ -56,6 +59,7 @@ router.post("/:hotelId/create", authMiddleware, async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Saved",
+      result: result
     });
   } catch (error) {
     console.error("Error :", error);
@@ -141,13 +145,16 @@ router.delete(
   },
 );
 
-router.patch("/:hotelId/:noticeId/pin", async (req, res) => {
+router.patch("/:hotelId/:noticeId/:pinValue", authMiddleware, async (req, res) => {
   try {
-    const { hotelId, noticeId } = req.params;
+    const { hotelId, noticeId, pinValue } = req.params;
+
     const currentUserId = req.user._id;
 
-    const hotel = await Conversation.findById(hotelId);
+    const isPinned = pinValue === "true"
 
+    const hotel = await Conversation.findById(hotelId);
+ 
     if (!hotel) {
       return res.status(404).json({
         success: false,
@@ -162,61 +169,29 @@ router.patch("/:hotelId/:noticeId/pin", async (req, res) => {
       });
     }
 
-    await Notice.findByIdAndUpdate(
+   const updatedNotice = await Notice.findByIdAndUpdate(
       { _id: noticeId, restaurant: hotelId },
 
       {
         $set: {
-          isPinned: true,
+          isPinned: isPinned ,
         },
-      },
+      }, {
+        new: true,
+      }
     );
 
-    res.status(200).json({
-      success: true,
-      message: "Pinned SuccessFully",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Server Problem !!",
-    });
-  }
-});
-
-router.patch("/:hotelId/:noticeId/unpin", async (req, res) => {
-  try {
-    const { hotelId, noticeId } = req.params;
-    const currentUserId = req.user._id;
-
-    const hotel = await Conversation.findById(hotelId);
-
-    if (!hotel) {
+    if(!updatedNotice) {
       return res.status(404).json({
         success: false,
-        message: "Hotel not found",
-      });
+        message: "Notice not found"
+      })
     }
 
-    if (!isAdmin(hotel, currentUserId)) {
-      return res.status(403).json({
-        success: false,
-        message: "Unauthorised access!!!",
-      });
-    }
-
-    await Notice.findByIdAndUpdate(
-      { _id: noticeId, restaurant: hotelId  },
-      {
-        $set: {
-          isPinned: false,
-        },
-      },
-    );
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: "unPinned SuccessFully",
+      message: isPinned ? "Pinned Successfully" : "Unpin Successfully",
+      result: updatedNotice,
     });
   } catch (error) {
     res.status(500).json({
@@ -224,6 +199,6 @@ router.patch("/:hotelId/:noticeId/unpin", async (req, res) => {
       message: "Server Problem !!",
     });
   }
-});
+});    
 
 export default router;
