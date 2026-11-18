@@ -12,13 +12,13 @@ const noticeSchema = new mongoose.Schema(
 
     title: {
       type: String,
-      required: [true, 'Title is required'],
+      required: false,
       trim: true,
       maxlength: 200,
     },
     content: {
       type: String,
-      required: [true, 'Content is required'],
+      required: false,
       trim: true,
       maxlength: 5000,
     },
